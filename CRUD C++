@@ -1,0 +1,421 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#define limit 100
+using namespace std;
+string nama_menu[limit], stok[limit], harga[limit], nomor_id[limit];
+char isLanjut;
+bool login();
+void menu_login();
+void addMenu(fstream &storage);
+void checkDatabase(fstream &storage);
+void display(fstream &storage);
+void updateMenu(fstream &storage);
+void deleteMenu(fstream &storage);
+
+int main(){
+    char is_continue;
+    menu_login();
+    int inputan;
+    fstream storage;
+    checkDatabase(storage);
+    storage.close();
+    char loop;
+    menu:
+    system("cls");
+    cout << "===========program manajemen menu makanan===========" << endl;
+    cout << "1. Tambahkan Menu & Stok\n2. Tampilkan Menu & Stok\n3. Update Menu & Stok\n4. Delete Menu\n5. Keluar\n" << endl;
+    cout << "Masukkan pilihan yang anda inginkan: ";
+    cin >> inputan;
+    cin.ignore();
+    enum option{CREATE = 1, READ, UPDATE, DELETE, FINISH};
+    
+    while(inputan != FINISH){
+        switch (inputan){
+        case CREATE: //nambahin barang store ke file.txt
+            cout << "Menambah Menu & Stok" << endl;
+            addMenu(storage);
+            goto menu;
+
+        case READ: //nampilin yang udh di store ke file.txt nya
+            cout << "Menampilkan Menu & Stok" << endl;
+            display(storage);
+            system("PAUSE");
+            goto menu;
+
+        case UPDATE:
+            cout << "Update Menu & Stok" << endl;
+            display(storage);
+            updateMenu(storage);
+            display(storage);
+            update:
+            cout << "Apakah anda masih ingin update data(y/n)? ";
+            cin >> loop;
+            cin.ignore();
+            if(loop == 'y' || loop == 'Y'){
+                system("cls");
+                display(storage);
+                updateMenu(storage);
+                display(storage);
+                goto update;
+            }else if(loop == 'n'|| loop == 'N'){
+                goto menu;
+            }else{
+                cout << "Masukan salah!" << endl;
+                goto update;
+            }
+            goto menu;
+
+        case DELETE:
+            cout << "Menghapus Menu & Stok" << endl;
+            deleteMenu(storage);
+            goto menu;
+
+        default:
+            cout << "Pilih 1-5" << endl;
+            break;
+        }
+    
+
+    lanjutkan:
+	cout << "Lanjutkan?(y/n) : ";
+	cin >> is_continue;
+    cin.ignore();
+	if ( (is_continue == 'y') | (is_continue == 'Y')){
+        goto menu;
+    } else if ((is_continue == 'n') | (is_continue == 'N')){
+		break;
+	} else {
+		goto lanjutkan;
+	}
+    }
+    return 0;
+}
+
+
+bool login(){
+    fstream myFile;
+    myFile.open("data.txt", ios::in);
+    string username, password, simpan_username, simpan_password;
+    cout << "masukkan username: ";
+    getline(cin, username);
+    cout << "masukkan password: ";
+    getline(cin, password);
+  
+    while(!myFile.eof()){
+      getline(myFile, simpan_username);
+      getline(myFile, simpan_password);
+    }
+    if (simpan_username == username && simpan_password == password){
+        return true;
+    }else{
+        return false;
+    }
+    myFile.close();
+}
+
+void menu_login(){
+    string username, password;
+    int pilihan;
+    fstream myFile;
+    myFile.open("data.txt",ios::out|ios::in);
+    label:
+    system("cls");
+    cout << "===========program manajemen menu makanan===========" << endl;
+    cout << "1. Daftar akun baru\n2. Login\n Masukkan pilihan anda(masukkan 0 bila ingin keluar): ";
+    cin >> pilihan;
+    cin.ignore();
+    if (pilihan == 1){
+        myFile.open("data.txt",ios::out|ios::in);
+        myFile.close();
+        if(!myFile){
+            myFile.close();
+            myFile.open("data.txt",ios::out);
+            cout << "Pilih username anda: ";
+            getline(cin, username);
+            cout << "Pilih password anda: ";
+            getline(cin, password);
+            myFile << username << endl << password;
+            myFile.close();
+            cout << "Selamat! Akun baru sudah dibuat ^-^" << endl;
+            system("PAUSE");
+            goto label;
+        }else{
+            cout << "Maaf! akun sudah dibuat" << endl;
+            system("PAUSE");
+            goto label;
+        }
+
+    }else if(pilihan == 2){
+        if(!myFile){
+            cout << "Maaf! akun belom dibuat, silahkan Daftar Akun!" << endl;
+            system("PAUSE");
+            goto label;
+        }
+        bool status = login();
+        if (status == true){
+            cout << "Login berhasil! ^-^" << endl;
+            system("PAUSE");
+        }else{
+            cout << "Login Tidak Berhasil! masukkan username dan password dengan benar!" << endl;
+            system("PAUSE");
+            goto label;
+        }
+    }else if (pilihan == 0){
+      exit(0);
+    }else{
+        cout << "masukan anda salah!" << endl;
+        system("PAUSE");
+        goto label;
+    }
+}
+
+void addMenu(fstream &storage){
+    string temp[limit], id[limit], menu[limit], st[limit], hg[limit];
+    int  posisi = 0;
+    do{
+        if(posisi < limit){
+            int i = 0, j = 0;
+            display(storage);
+            storage.open("menu.txt", ios::in);
+            while(!storage.eof()){
+                while(j < 2){
+                    getline(storage, temp[j]);
+                    j++;
+                }
+                getline(storage, menu[i], '\t');
+                getline(storage, temp[j], '\t');
+                getline(storage, id[i], '\t');
+                getline(storage, temp[j+2], '\t');
+                getline(storage, temp[j+3], '\t');
+                getline(storage, st[i], '\t');
+                getline(storage, temp[j+4],'\t');
+                getline(storage, temp[j+5], '\t');
+                getline(storage, hg[i], '\n');
+                i++;
+            }
+            storage.close();
+            storage.open("menu.txt", ios::out|ios::app);
+            ID:
+            cout << "Nama menu baru: ";
+            getline(cin, nama_menu[posisi]);
+            cout << "Masukkan Nomor id Menu: ";
+            getline(cin, nomor_id[posisi]);
+            cout << "Stok Menu: ";
+            getline(cin, stok[posisi]);
+            cout << "Harga Menu: ";
+            getline(cin, harga[posisi]);
+            for (int v = 0; v < i - 1; v++){
+                if(id[v] == nomor_id[posisi]){
+                    cout << "Maaf! ID sudah terpakai" << endl;
+                    goto ID;
+                }else{
+                    continue;
+                }
+            }
+            storage << nama_menu[posisi] << "\t\t";
+            storage << nomor_id[posisi] << "\t\t\t";
+            storage << stok[posisi] << "\t\t\t";
+            storage << harga[posisi] << endl;
+            posisi++;
+            storage.close();
+            system("cls");
+            display(storage);
+            loop:
+            cout << "Apakah anda ingin menambah menu lagi(y/n)? ";
+            cin >> isLanjut;
+            cin.ignore();
+            if(isLanjut == 'n' || isLanjut == 'N'){
+                continue;
+            }else if(isLanjut == 'y' || isLanjut == 'Y'){
+                continue;
+            }else{
+                cout << "Masukan salah!" << endl;
+                goto loop;
+            }
+        }else{
+            cout << "Maaf! Memory penuh " << endl;
+            system("PAUSE");
+            break;
+        }
+    } while (isLanjut == 'y' | isLanjut == 'Y');
+    storage.close();
+}
+
+void checkDatabase(fstream &storage){
+	storage.open("menu.txt", ios::out | ios::in);
+	// check file ada atau tidak
+    if (storage.is_open()){
+        cout << "database ditemukan" << endl;
+        storage << "Nama Menu\t\t";
+        storage << "Nomor ID Menu\t\t";
+        storage << "Stok Menu\t\t";
+        storage << "Harga Menu" << endl << endl;
+    } else {
+		//cout << "database tidak ditemukan, buat database baru" << endl;
+		storage.close();
+		storage.open("menu.txt", ios::trunc | ios::out | ios::in);
+        storage << "Nama Menu\t\t";
+        storage << "Nomor Menu\t\t";
+        storage << "Stok Menu\t\t";
+        storage << "Harga Menu" << endl << endl;
+    }
+}
+
+void display(fstream &storage){
+    char loop;
+    string word;
+    storage.open("menu.txt", ios::in);
+    cout << "=================================================================================" << endl;
+    while(!storage.eof()){
+        getline(storage, word, '\t');
+        cout << word << "\t";
+    }
+    cout << endl;
+    cout << "=================================================================================" << endl;
+    storage.close();
+}
+
+void updateMenu(fstream &storage){
+    string temp[100], input;
+    bool found = false;
+    int i = 0, j=0, h = 0, pil;
+    string word;
+    storage.open("menu.txt", ios::in|ios::out);
+    while(!storage.eof()){
+        while(j < 2){
+            getline(storage, temp[j]);
+            j++;
+        }
+        getline(storage, nama_menu[i], '\t');
+        getline(storage, temp[j], '\t');
+        getline(storage, nomor_id[i], '\t');
+        getline(storage, temp[j+2], '\t');
+        getline(storage, temp[j+3], '\t');
+        getline(storage, stok[i], '\t');
+        getline(storage, temp[j+4],'\t');
+        getline(storage, temp[j+5], '\t');
+        getline(storage, harga[i], '\n');
+        i++;
+    }
+    cout << "Masukkan ID Makanan yang ingin anda update: ";
+    getline(cin, input);
+    for (int q = 0; q < i-1; q++){
+        if (input == nomor_id[q]){
+            cout << "Stok Menu: ";
+            getline(cin, stok[q]);
+            found = true;
+            break;
+        }
+    }
+    storage.close();
+    if(found == true){
+        storage.open("menu.txt", ios::trunc|ios::out|ios::in);
+        storage << "Nama Menu\t\t";
+        storage << "Nomor ID Menu\t\t";
+        storage << "Stok Menu\t\t";
+        storage << "Harga Menu" << endl << endl;
+        for (int k = 0; k < i-1; k++){
+            storage << nama_menu[k] << "\t\t";
+            storage << nomor_id[k] << "\t\t\t";
+            storage << stok[k] << "\t\t\t";
+            storage << harga[k] << "\n";
+        }
+        storage.close();
+    }else if(found == false){
+        cout << "Nomor id tidak ditemukan!" << endl;
+    }
+
+}
+
+void deleteMenu(fstream &storage){
+    char pilihan;
+    bool found = false;
+    do{
+        display(storage);
+        string temp[100], temporary[100], input;
+        bool found = false;
+        int i = 0, j = 0, pil;
+        string word;
+        storage.open("menu.txt", ios::in|ios::out);
+        while(!storage.eof()){
+            while(j < 2){
+                getline(storage, temp[j]);
+                j++;
+            }
+            getline(storage, nama_menu[i], '\t');
+            getline(storage, temp[j], '\t');
+            getline(storage, nomor_id[i], '\t');
+            getline(storage, temp[j+2], '\t');
+            getline(storage, temp[j+3], '\t');
+            getline(storage, stok[i], '\t');
+            getline(storage, temp[j+4],'\t');
+            getline(storage, temp[j+5], '\t');
+            getline(storage, harga[i], '\n');
+            i++;
+        }
+        ID:
+        cout << "Masukkan Nomor ID Menu yang ingin dihapus: ";
+        getline(cin, input);
+        for (int v = 0; v < i-1; v++){
+            if (input == nomor_id[v]){
+                found = true;
+                temporary[v] = nama_menu[v];
+                temporary[v + 1] = nomor_id[v];
+                temporary[v + 2] = stok[v];
+                temporary[v + 3] = harga[v];
+                for (v; v < i-2; v++){
+                    nama_menu[v] = nama_menu[v + 1];
+                    nomor_id[v] = nomor_id[v + 1];
+                    stok[v] = stok[v + 1];
+                    harga[v] = harga[v + 1];
+                }
+                break;
+            }else{
+                continue;
+            }
+        }
+        if(found == false){
+            cout << "Maaf! Nomor ID tidak ditemukan" << endl;
+            PIL:
+            cout << "Apakah anda ingin hapus data lagi(y/n)? ";
+            cin >> pilihan;
+            cin.ignore();
+            if(pilihan == 'n' || pilihan == 'N'){
+                break;
+            }else if(pilihan == 'y' || pilihan == 'Y'){
+                 goto ID;
+            }else{
+                cout << "Masukan anda salah! " << endl;
+                goto PIL;
+            }
+        }
+        storage.close();
+        storage.open("menu.txt", ios::trunc|ios::out|ios::in);
+        storage << "Nama Menu\t\t";
+        storage << "Nomor ID Menu\t\t";
+        storage << "Stok Menu\t\t";
+        storage << "Harga Menu" << endl << endl;
+        for (int k = 0; k < i-2; k++){
+            storage << nama_menu[k] << "\t\t";
+            storage << nomor_id[k] << "\t\t\t";
+            storage << stok[k] << "\t\t\t";
+            storage << harga[k] << "\n";
+        }
+        storage << endl;
+        storage.close();
+        display(storage);
+        decision:
+        cout << "Apakah anda ingin hapus data lagi(y/n)? ";
+        cin >> pilihan;
+        cin.ignore();
+        if(pilihan == 'n' || pilihan == 'N'){
+            break;
+        }else if(pilihan == 'y' || pilihan == 'Y'){
+            continue;
+        }else{
+            cout << "Masukan anda salah! " << endl;
+            goto decision;
+        }
+    } while (pilihan == 'y' || pilihan == 'Y');
+}
